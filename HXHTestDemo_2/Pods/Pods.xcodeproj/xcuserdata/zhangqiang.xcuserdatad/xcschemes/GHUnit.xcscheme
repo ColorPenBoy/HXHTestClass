@@ -14,10 +14,10 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = 'primary'
-               BlueprintIdentifier = '4198E21546AAE04E50B3F663643304C6'
+               BlueprintIdentifier = 'E31CD6426E076EA88094CA628DF22CD1'
                BlueprintName = 'GHUnit'
                ReferencedContainer = 'container:Pods.xcodeproj'
-               BuildableName = 'GHUnit.framework'>
+               BuildableName = 'libGHUnit.a'>
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
