@@ -16,9 +16,13 @@
 {
     CounterModel * model;
     NSUserDefaults * mockDefaults;
+    int modelChangedCount;
+    NSInteger modelChangedValue;
 }
 
 @end
+
+static NSString * const currentID = @"currentID";
 
 @implementation CounterModelTest
 
@@ -27,12 +31,21 @@
 
     mockDefaults = mock([NSUserDefaults class]);
     model = [[CounterModel alloc] initWithUserDefault:mockDefaults];
-    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(counterModelChanged:)
+                                                 name:CounterModelChanged
+                                               object:model];
 }
 
 - (void)tearDown {
     model = nil;
     [super tearDown];
+}
+
+- (void)counterModelChanged:(NSNotification *)notification {
+    ++modelChangedCount;
+    CounterModel *counter = (CounterModel *)[notification object];
+    modelChangedValue = [counter count];
 }
 
 - (void)testInitShouldNotReturnNil {
@@ -42,12 +55,14 @@
 
 /** 原来储存的值为空，需要返回0 */
 - (void)testGetCountInDefaultsWithNilShouldReturnZero {
-
+    [given([mockDefaults objectForKey:currentID]) willReturn:nil];
+    assertThatInteger([model getCountInDefaults], equalToInteger(0));
 }
 
 /** 原来储存的值为NSNumber类型的3，需要返回NSInteger类型的3 */
 - (void)testGetCountInDefaultsWithNumberThreeShouldReturnintegerThree {
-
+    [given([mockDefaults objectForKey:currentID]) willReturn:@3];
+    assertThatInteger([model getCountInDefaults], equalToInteger(3));
 }
 
 - (void)testPerformanceExample {
