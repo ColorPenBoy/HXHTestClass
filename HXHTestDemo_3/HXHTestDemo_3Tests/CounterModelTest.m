@@ -12,6 +12,7 @@
 #import <OCHamcrest/OCHamcrest.h>
 #import <OCMockito/OCMockito.h>
 
+/** Model 层测试 */
 @interface CounterModelTest : XCTestCase
 {
     CounterModel * model;
@@ -22,7 +23,7 @@
 
 @end
 
-static NSString * const currentID = @"currentID";
+static NSString * const currentID = @"countInDefaultID";
 
 @implementation CounterModelTest
 
@@ -64,6 +65,36 @@ static NSString * const currentID = @"currentID";
     [given([mockDefaults objectForKey:currentID]) willReturn:@3];
     assertThatInteger([model getCountInDefaults], equalToInteger(3));
 }
+
+
+- (void)testIncrementShouldInvokeSetObject {
+    
+    [given([mockDefaults objectForKey:currentID]) willReturn:@3];
+    [model increment];
+    [verify(mockDefaults) setObject:@4 forKey:currentID];
+}
+
+- (void)testIncrementShouldPostNotification {
+    [given([mockDefaults objectForKey:currentID]) willReturn:@3];
+    [model increment];
+    assertThatInt(modelChangedCount, is(equalToInt(1)));
+    assertThatInteger(modelChangedValue, is(equalToInteger(4)));
+}
+
+- (void)testDecrementShouldInvokeSetObject {
+    
+    [given([mockDefaults objectForKey:currentID]) willReturn:@3];
+    [model decrement];
+    [verify(mockDefaults) setObject:@2 forKey:currentID];
+}
+
+- (void)testDecrementShouldPostNotification {
+    [given([mockDefaults objectForKey:currentID]) willReturn:@3];
+    [model decrement];
+    assertThatInt(modelChangedCount, is(equalToInt(1)));
+    assertThatInteger(modelChangedValue, is(equalToInteger(2)));
+}
+
 
 - (void)testPerformanceExample {
     // This is an example of a performance test case.
