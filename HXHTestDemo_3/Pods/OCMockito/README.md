@@ -22,86 +22,6 @@ Key differences from other mocking frameworks:
   failures.
 
 
-How do I add OCMockito to my project?
--------------------------------------
-
-The Examples folder shows projects using OCMockito either through CocoaPods or
-through the prebuilt frameworks, for iOS and Mac OS X development.
-
-### CocoaPods
-
-If you want to add OCMockito using Cocoapods then add the following dependency
-to your Podfile. Most people will want OCMockito in their test targets, and not
-include any pods from their main targets:
-
-```ruby
-target 'MyTests' do
-  inherit! :search_paths
-  pod 'OCMockito', '~> 3.0'
-end
-```
-
-Use the following imports:
-
-    #import <OCHamcrest/OCHamcrest.h>
-    #import <OCMockito/OCMockito.h>
-
-### Carthage
-
-Add the following to your Cartfile:
-
-```
-github "jonreid/OCMockito" "master"
-```
-
-Then drag the the built frameworks (both OCHamcrest and OCMockito) from the
-appropriate Carthage/Build directory into your project, but with "Copy items
-into destination group's folder" disabled.
-
-### Prebuilt Frameworks
-
-Prebuilt binaries are available on GitHub for
-[OCMockito](https://github.com/jonreid/OCMockito/releases/). You will also need
-[OCHamcrest](https://github.com/hamcrest/OCHamcrest/releases/).
-The binaries are packaged as frameworks:
-
-* __OCMockitoIOS.framework__ for iOS development
-* __OCMockito.framework__ for Mac OS X development
-
-OCHamcrest comes in a similar scheme. Drag the appropriate frameworks for both
-both OCMockito and OCHamcrest into your project, specifying "Copy items into
-destination group's folder". Then specify `-ObjC` in your "Other Linker Flags".
-
-#### iOS Development:
-
-Use the following imports:
-
-    #import <OCHamcrestIOS/OCHamcrestIOS.h>
-    #import <OCMockitoIOS/OCMockitoIOS.h>
-
-
-#### Mac OS X Development:
-
-Add a "Copy Files" build phase to copy OCMockito.framework and
-OCHamcrest.framework to your Products Directory.
-
-Use the following imports:
-
-    #import <OCHamcrest/OCHamcrest.h>
-    #import <OCMockito/OCMockito.h>
-
-
-### Build Your Own
-
-If you want to build OCMockito yourself, clone the repo, then
-
-```sh
-$ Frameworks/gethamcrest
-$ cd Source
-$ ./MakeDistribution.sh
-```
- 
-
 Let's verify some behavior!
 ---------------------------
 
@@ -209,7 +129,9 @@ SomeStruct aStruct = {...};
 How do you stub a property so that KVO works?
 ---------------------------------------------
 
-Use `stubProperty(mock, property, stubbedValue)`. For example, say you have a mock object named `mockEmployee`. It has a property `firstName`. You want to stub it to return the value "FIRST-NAME":
+Use `stubProperty(mock, property, stubbedValue)`. For example, say you have a
+mock object named `mockEmployee`. It has a property `firstName`. You want to
+stub it to return the value "FIRST-NAME":
 
 ```obj-c
 stubProperty(mockEmployee, firstName, @"FIRST-NAME");
@@ -358,7 +280,7 @@ invocation arguments by calling `mkt_arguments` from NSInvocation+OCMockito.h.
 Whatever the block returns will be used as the stubbed return value.
 
 ```obj-c
-[[given([mockObject someMethod:anything()]) willDo:^id (NSInvocation *invocation){
+[given([mockObject someMethod:anything()]) willDo:^id (NSInvocation *invocation){
     NSArray *args = [invocation mkt_arguments];
     return @([args[0] intValue] * 2);
 }];
@@ -377,3 +299,113 @@ Use `stopMocking(…)` if a `-dealloc` of your System Under Test is trying to
 message an object that is mocked. It disables message handling on the mock and
 frees its retained arguments. This prevents retain cycles and crashes during
 test clean-up. See StopMockingTests.m for an example.
+
+
+How do you mock a singleton?
+----------------------------
+
+The short answer is: Don't. Instead of your class deciding who it's going to
+talk to, inject those dependencies.
+
+The longer answer is: Well. Legacy code. Call `stubSingleton` on a mock class
+object, specifying the name of the factory method.
+
+```obj-c
+__strong Class mockUserDefaultsClass = mockClass([NSUserDefaults class]);
+NSUserDefaults* mockDefaults = mock([NSUserDefaults class]);
+
+stubSingleton(mockUserDefaultsClass, standardUserDefaults);
+[given([NSUserDefaults standardUserDefaults]) willReturn:mockDefaults];
+```
+
+Beware! This uses swizzling. You need to make sure the mock class object gets
+deallocated so that the swizzling is undone.
+
+In the example above, `mockUserDefaultsClass` will go out scope and be
+destroyed. But what if you kept it in the test fixture, as an ivar or a
+property? Due to a bug in XCTest, it won't be implicitly destroyed. You need to
+explicitly set it to nil in `-tearDown`, or the swizzling will bleed over to
+your other tests, compromising their integrity.
+
+If you need more control over when the swizzling is undone, call
+`stopMocking(…)` on the mock class.
+
+
+How do I add OCMockito to my project?
+-------------------------------------
+
+The Examples folder shows projects using OCMockito either through CocoaPods or
+through the prebuilt frameworks, for iOS and Mac OS X development.
+
+### CocoaPods
+
+If you want to add OCMockito using Cocoapods then add the following dependency
+to your Podfile. Most people will want OCMockito in their test targets, and not
+include any pods from their main targets:
+
+```ruby
+target 'MyTests' do
+  inherit! :search_paths
+  pod 'OCMockito', '~> 4.0'
+end
+```
+
+Use the following imports:
+
+    #import <OCHamcrest/OCHamcrest.h>
+    #import <OCMockito/OCMockito.h>
+
+### Carthage
+
+Add the following to your Cartfile:
+
+```
+github "jonreid/OCMockito" ~> 4.0
+```
+
+Then drag the the built frameworks (both OCHamcrest and OCMockito) from the
+appropriate Carthage/Build directory into your project, but with "Copy items
+into destination group's folder" disabled.
+
+### Prebuilt Frameworks
+
+Prebuilt binaries are available on GitHub for
+[OCMockito](https://github.com/jonreid/OCMockito/releases/). You will also need
+[OCHamcrest](https://github.com/hamcrest/OCHamcrest/releases/).
+The binaries are packaged as frameworks:
+
+* __OCMockitoIOS.framework__ for iOS development
+* __OCMockito.framework__ for Mac OS X development
+
+OCHamcrest comes in a similar scheme. Drag the appropriate frameworks for both
+both OCMockito and OCHamcrest into your project, specifying "Copy items into
+destination group's folder". Then specify `-ObjC` in your "Other Linker Flags".
+
+#### iOS Development:
+
+Use the following imports:
+
+    #import <OCHamcrestIOS/OCHamcrestIOS.h>
+    #import <OCMockitoIOS/OCMockitoIOS.h>
+
+
+#### Mac OS X Development:
+
+Add a "Copy Files" build phase to copy OCMockito.framework and
+OCHamcrest.framework to your Products Directory.
+
+Use the following imports:
+
+    #import <OCHamcrest/OCHamcrest.h>
+    #import <OCMockito/OCMockito.h>
+
+
+### Build Your Own
+
+If you want to build OCMockito yourself, clone the repo, then
+
+```sh
+$ Frameworks/gethamcrest
+$ cd Source
+$ ./MakeDistribution.sh
+```

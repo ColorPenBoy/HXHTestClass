@@ -1,5 +1,5 @@
 //  OCHamcrest by Jon Reid, http://qualitycoding.org/about/
-//  Copyright 2016 hamcrest.org. See LICENSE.txt
+//  Copyright 2017 hamcrest.org. See LICENSE.txt
 
 #import "HCIsEqualCompressingWhiteSpace.h"
 
@@ -39,7 +39,7 @@ static NSString *stripSpaces(NSString *string)
     return self;
 }
 
-- (BOOL)matches:(id)item
+- (BOOL)matches:(nullable id)item
 {
     if (![item isKindOfClass:[NSString class]])
         return NO;
@@ -59,9 +59,4 @@ static NSString *stripSpaces(NSString *string)
 id HC_equalToCompressingWhiteSpace(NSString *expectedString)
 {
     return [[HCIsEqualCompressingWhiteSpace alloc] initWithString:expectedString];
-}
-
-id HC_equalToIgnoringWhiteSpace(NSString *expectedString)
-{
-    return HC_equalToCompressingWhiteSpace(expectedString);
 }

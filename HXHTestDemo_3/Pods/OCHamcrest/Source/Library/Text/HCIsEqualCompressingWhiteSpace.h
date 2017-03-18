@@ -1,21 +1,23 @@
 //  OCHamcrest by Jon Reid, http://qualitycoding.org/about/
-//  Copyright 2016 hamcrest.org. See LICENSE.txt
+//  Copyright 2017 hamcrest.org. See LICENSE.txt
 
 #import <OCHamcrest/HCBaseMatcher.h>
 
+
+NS_ASSUME_NONNULL_BEGIN
 
 /*!
  * @abstract Tests if a string is equal to another string, when whitespace differences are (mostly) ignored.
  */
 @interface HCIsEqualCompressingWhiteSpace : HCBaseMatcher
 
-- (instancetype)initWithString:(NSString *)string;
+- (instancetype)initWithString:(NSString *)string NS_DESIGNATED_INITIALIZER;
+- (instancetype)init NS_UNAVAILABLE;
 
 @end
 
 
 FOUNDATION_EXPORT id HC_equalToCompressingWhiteSpace(NSString *expectedString);
-FOUNDATION_EXPORT id HC_equalToIgnoringWhiteSpace(NSString *expectedString) __attribute__((deprecated));
 
 #ifndef HC_DISABLE_SHORT_SYNTAX
 /*!
@@ -39,9 +41,6 @@ static inline id equalToCompressingWhiteSpace(NSString *expectedString)
 {
     return HC_equalToCompressingWhiteSpace(expectedString);
 }
-
-static inline id equalToIgnoringWhiteSpace(NSString *expectedString) __attribute__((deprecated))
-{
-    return HC_equalToIgnoringWhiteSpace(expectedString);
-}
 #endif
+
+NS_ASSUME_NONNULL_END

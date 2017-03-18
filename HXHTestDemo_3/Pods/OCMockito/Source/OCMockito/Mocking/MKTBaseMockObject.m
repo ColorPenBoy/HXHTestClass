@@ -1,5 +1,5 @@
 //  OCMockito by Jon Reid, http://qualitycoding.org/about/
-//  Copyright 2016 Jonathan M. Reid. See LICENSE.txt
+//  Copyright 2017 Jonathan M. Reid. See LICENSE.txt
 
 #import "MKTBaseMockObject.h"
 
@@ -21,6 +21,15 @@
 
 @implementation MKTBaseMockObject
 
++ (BOOL)isMockObject:(id)object
+{
+    NSString *className = NSStringFromClass([object class]);
+    return [className isEqualToString:@"MKTObjectMock"] ||
+            [className isEqualToString:@"MKTProtocolMock"] ||
+            [className isEqualToString:@"MKTClassObjectMock"] ||
+            [className isEqualToString:@"MKTObjectAndProtocolMock"];
+}
+
 - (instancetype)init
 {
     if (self)
@@ -31,7 +40,7 @@
     return self;
 }
 
-- (void)mkt_stopMocking
+- (void)stopMocking
 {
     self.stoppedMocking = YES;
     self.invocationContainer = nil;

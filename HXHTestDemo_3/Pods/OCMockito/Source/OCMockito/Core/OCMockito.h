@@ -1,5 +1,5 @@
 //  OCMockito by Jon Reid, http://qualitycoding.org/about/
-//  Copyright 2016 Jonathan M. Reid. See LICENSE.txt
+//  Copyright 2017 Jonathan M. Reid. See LICENSE.txt
 
 #import <Foundation/Foundation.h>
 
@@ -15,6 +15,8 @@
 
 @protocol MKTVerificationMode;
 
+
+NS_ASSUME_NONNULL_BEGIN
 
 FOUNDATION_EXPORT id MKTMock(Class classToMock);
 
@@ -163,7 +165,7 @@ FOUNDATION_EXPORT MKTOngoingStubbing *MKTGivenVoidWithLocation(id testCase, cons
  * matcher is implicitly wrapped in <code>equalTo</code> to match for equality.
  *
  * Example:
- * <pre>[givenVoid([mockObject methodReturningVoid]) willDo:^{ magic(); }];</pre>
+ * <pre>[givenVoid([mockObject methodReturningVoid]) willDo:^id(NSInvocation *invocation) { magic(); return nil; }];</pre>
  *
  * <b>Name Clash</b><br />
  * In the event of a name clash, <code>#define MKT_DISABLE_SHORT_SYNTAX</code> and use the synonym
@@ -173,11 +175,11 @@ FOUNDATION_EXPORT MKTOngoingStubbing *MKTGivenVoidWithLocation(id testCase, cons
 #endif
 
 
-#define MKTStubProperty(mock, property, stubbedValue)                          \
-    do {                                                                       \
-        [MKTGiven([mock property]) willReturn:stubbedValue];                   \
-        [MKTGiven([mock valueForKey:@#property]) willReturn:stubbedValue];     \
-        [MKTGiven([mock valueForKeyPath:@#property]) willReturn:stubbedValue]; \
+#define MKTStubProperty(mock, propertyName, stubbedValue)                          \
+    do {                                                                           \
+        [MKTGiven([mock propertyName]) willReturn:stubbedValue];                   \
+        [MKTGiven([mock valueForKey:@#propertyName]) willReturn:stubbedValue];     \
+        [MKTGiven([mock valueForKeyPath:@#propertyName]) willReturn:stubbedValue]; \
     } while(0)
 
 #ifndef MKT_DISABLE_SHORT_SYNTAX
@@ -188,7 +190,22 @@ FOUNDATION_EXPORT MKTOngoingStubbing *MKTGivenVoidWithLocation(id testCase, cons
  * In the event of a name clash, <code>#define MKT_DISABLE_SHORT_SYNTAX</code> and use the synonym
  * MKTStubProperty instead.
  */
-#define stubProperty(mock, property, stubbedValue) MKTStubProperty(mock, property, stubbedValue)
+#define stubProperty(mock, propertyName, stubbedValue) MKTStubProperty(mock, propertyName, stubbedValue)
+#endif
+
+
+FOUNDATION_EXPORT void MKTStubSingletonWithLocation(id mockClass, SEL aSelector, id testCase, const char *fileName, int lineNumber);
+#define MKTStubSingleton(mockClass, methodName) MKTStubSingletonWithLocation(mockClass, @selector(methodName), self, __FILE__, __LINE__)
+
+#ifndef MKT_DISABLE_SHORT_SYNTAX
+/*!
+ * @abstract Stubs a singleton to the mock class object.
+ * @discussion
+ * <b>Name Clash</b><br />
+ * In the event of a name clash, <code>#define MKT_DISABLE_SHORT_SYNTAX</code> and use the synonym
+ * MKTStubSingleton instead.
+ */
+#define stubSingleton(mockClass, methodName) MKTStubSingleton(mockClass, methodName)
 #endif
 
 
@@ -341,6 +358,27 @@ static inline id <MKTVerificationMode> atMost(NSUInteger maxNumberOfInvocations)
 #endif
 
 
+FOUNDATION_EXPORT void MKTDisableMockingWithLocation(id mock, id testCase, const char *fileName, int lineNumber);
+#define MKTDisableMocking(mock) MKTDisableMockingWithLocation(mock, self, __FILE__, __LINE__)
+
+#ifndef MKT_DISABLE_SHORT_SYNTAX
+/*!
+ * @abstract Disables mocking, preventing any more invocations from being handled.
+ * @discussion There are cases where calling stopMocking() on a mock can release code under test
+ * that was being retained. If that code under test's dealloc method then references another mock
+ * that has not yet been stopped, it will create a strong reference to an object that is in the
+ * process of being deallocated, resulting in an over-release at a later date. A solution to this is
+ * to call disableMocking() on all mocks before calling stopMocking(). This allows a test to call
+ * stopMocking on all of its mocks without having to worry about which order to call them.
+ *
+ * <b>Name Clash</b><br />
+ * In the event of a name clash, <code>#define MKT_DISABLE_SHORT_SYNTAX</code> and use the synonym
+ * MKTDisableMocking instead.
+ */
+#define disableMocking(mock) MKTDisableMocking(mock)
+#endif
+
+
 FOUNDATION_EXPORT void MKTStopMockingWithLocation(id mock, id testCase, const char *fileName, int lineNumber);
 #define MKTStopMocking(mock) MKTStopMockingWithLocation(mock, self, __FILE__, __LINE__)
 
@@ -357,3 +395,5 @@ FOUNDATION_EXPORT void MKTStopMockingWithLocation(id mock, id testCase, const ch
  */
 #define stopMocking(mock) MKTStopMocking(mock)
 #endif
+
+NS_ASSUME_NONNULL_END
